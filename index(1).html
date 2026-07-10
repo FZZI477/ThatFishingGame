@@ -1,0 +1,1304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Untitled Fishing</title>
+  <style>
+    :root {
+      --bg: #07131c;
+      --panel: rgba(12, 30, 42, 0.92);
+      --panel-2: rgba(19, 45, 61, 0.88);
+      --text: #edfaff;
+      --muted: #9ec4d4;
+      --accent: #7ce6ff;
+      --accent-2: #d691ff;
+      --good: #7df0a5;
+      --warn: #ffd479;
+      --danger: #ff7d8b;
+      --border: rgba(160, 225, 255, 0.25);
+      --shadow: 0 18px 55px rgba(0,0,0,.35);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 20% 10%, rgba(58, 169, 219, .22), transparent 30%),
+        radial-gradient(circle at 80% 0%, rgba(187, 92, 255, .18), transparent 32%),
+        linear-gradient(160deg, #06121a 0%, #0b2330 55%, #101a31 100%);
+      overflow-x: hidden;
+    }
+
+    body.day {
+      --bg: #dff7ff;
+      --panel: rgba(238, 252, 255, 0.92);
+      --panel-2: rgba(218, 245, 252, 0.9);
+      --text: #112936;
+      --muted: #4d7182;
+      --border: rgba(24, 93, 120, 0.22);
+      --shadow: 0 18px 50px rgba(40, 100, 130, .18);
+      background:
+        radial-gradient(circle at 15% 5%, rgba(255,255,255,.95), transparent 26%),
+        radial-gradient(circle at 80% 0%, rgba(126, 222, 255, .55), transparent 32%),
+        linear-gradient(160deg, #dcf7ff 0%, #83d8ef 55%, #b8bbff 100%);
+    }
+
+    button, select, input { font: inherit; }
+
+    select, input {
+      color: var(--text);
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 12px;
+    }
+
+    button {
+      color: var(--text);
+      background: linear-gradient(135deg, rgba(74, 193, 224, .24), rgba(172, 102, 230, .2));
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 14px;
+      cursor: pointer;
+      transition: transform .16s ease, border-color .16s ease, opacity .16s ease;
+    }
+
+    button:hover:not(:disabled) {
+      transform: translateY(-2px);
+      border-color: var(--accent);
+    }
+
+    button:disabled {
+      opacity: .42;
+      cursor: not-allowed;
+    }
+
+    .app {
+      width: min(1200px, calc(100% - 24px));
+      margin: 0 auto;
+      padding: 22px 0 45px;
+    }
+
+    header {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+
+    h1, h2, h3, p { margin-top: 0; }
+
+    .title-wrap h1 {
+      margin-bottom: 3px;
+      letter-spacing: .02em;
+      font-size: clamp(1.8rem, 4vw, 3rem);
+    }
+
+    .subtitle { color: var(--muted); margin: 0; }
+
+    .top-stats {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .pill {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      border-radius: 999px;
+      padding: 9px 13px;
+      min-width: 105px;
+      text-align: center;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1.15fr .85fr;
+      gap: 16px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      border-radius: 20px;
+      padding: 17px;
+      backdrop-filter: blur(14px);
+    }
+
+    .stack { display: grid; gap: 16px; }
+
+    .location-hero {
+      min-height: 310px;
+      position: relative;
+      overflow: hidden;
+      display: grid;
+      place-items: end start;
+      background:
+        linear-gradient(to top, rgba(3, 13, 22, .9), rgba(5, 25, 40, .12)),
+        radial-gradient(circle at 25% 25%, rgba(126, 235, 255, .65), transparent 16%),
+        linear-gradient(140deg, #19485a, #255a6a 42%, #182d49);
+    }
+
+    body.day .location-hero {
+      background:
+        linear-gradient(to top, rgba(15, 50, 66, .72), rgba(105, 217, 249, .14)),
+        radial-gradient(circle at 25% 25%, rgba(255,255,255,.9), transparent 16%),
+        linear-gradient(140deg, #6cd3e9, #86def0 42%, #7d9fe2);
+    }
+
+    .location-hero.aurora {
+      background:
+        linear-gradient(to top, rgba(3, 10, 28, .86), rgba(17, 19, 61, .12)),
+        radial-gradient(ellipse at 20% 5%, rgba(86, 255, 216, .5), transparent 30%),
+        radial-gradient(ellipse at 75% 15%, rgba(198, 102, 255, .42), transparent 34%),
+        linear-gradient(140deg, #111d4a, #19315b 50%, #251f59);
+    }
+
+    .hero-content {
+      width: 100%;
+      position: relative;
+      z-index: 2;
+    }
+
+    .hero-content h2 { margin-bottom: 4px; }
+    .hero-content p { color: #d9f4ff; max-width: 650px; }
+
+    .fish-btn {
+      width: 100%;
+      padding: 15px;
+      font-size: 1.08rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, rgba(81, 211, 244, .55), rgba(191, 106, 255, .5));
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .tab.active {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(124, 230, 255, .15);
+    }
+
+    .tab-view { display: none; }
+    .tab-view.active { display: block; }
+
+    .rod-card, .fish-card, .inventory-row {
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px;
+    }
+
+    .rod-card + .rod-card, .fish-card + .fish-card, .inventory-row + .inventory-row {
+      margin-top: 9px;
+    }
+
+    .rod-head, .fish-head, .inventory-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .rod-stats, .small {
+      color: var(--muted);
+      font-size: .9rem;
+    }
+
+    .badge {
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      font-size: .78rem;
+      white-space: nowrap;
+    }
+
+    .Common { color: #d9edf2; }
+    .Uncommon { color: #82f0ad; }
+    .Rare { color: #76c7ff; }
+    .Mythical { color: #d490ff; }
+    .Legendary { color: #ffd36c; }
+    .Unknown { color: #ff88c8; }
+    .Extinct { color: #ff7777; }
+
+    .progress-shell {
+      height: 12px;
+      border-radius: 999px;
+      background: rgba(0,0,0,.28);
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #76e6ff, #d692ff);
+      transition: width .2s ease;
+    }
+
+    .log {
+      max-height: 160px;
+      overflow-y: auto;
+      color: var(--muted);
+      font-size: .9rem;
+      line-height: 1.45;
+    }
+
+    .log-entry { margin-bottom: 6px; }
+    .success { color: var(--good); }
+    .warning { color: var(--warn); }
+    .danger { color: var(--danger); }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      display: none;
+      place-items: center;
+      background: rgba(0, 7, 13, .84);
+      z-index: 50;
+      padding: 16px;
+    }
+
+    .modal.active { display: grid; }
+
+    .minigame-box {
+      position: relative;
+      width: min(900px, 96vw);
+      height: min(650px, 82vh);
+      overflow: hidden;
+      border-radius: 24px;
+      border: 1px solid rgba(150, 230, 255, .35);
+      background:
+        radial-gradient(circle at center, rgba(63, 181, 220, .18), transparent 50%),
+        linear-gradient(160deg, #06121b, #101f38);
+      box-shadow: 0 25px 90px rgba(0,0,0,.55);
+    }
+
+    .mini-hud {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      right: 12px;
+      z-index: 4;
+      display: grid;
+      gap: 7px;
+      pointer-events: none;
+    }
+
+    .shake-target {
+      position: absolute;
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      padding: 0;
+      opacity: .68;
+      background: radial-gradient(circle, rgba(255,255,255,.98), rgba(85, 218, 255,.65) 35%, rgba(190, 107, 255,.45) 70%);
+      box-shadow: 0 0 20px rgba(115, 225, 255, .55);
+      animation: shake .16s infinite alternate;
+      z-index: 3;
+    }
+
+    .shake-target.still {
+      animation: none;
+      opacity: .86;
+      box-shadow: 0 0 30px rgba(210, 130, 255, .8);
+    }
+
+    @keyframes shake {
+      from { transform: translate(-4px, 3px) rotate(-4deg); }
+      to { transform: translate(4px, -3px) rotate(4deg); }
+    }
+
+    .result-card {
+      width: min(500px, 95vw);
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 22px;
+      text-align: center;
+      box-shadow: var(--shadow);
+    }
+
+    .result-card button { margin-top: 10px; }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .completion {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: .9rem;
+    }
+
+    .footer-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    @media (max-width: 850px) {
+      .layout { grid-template-columns: 1fr; }
+      .location-hero { min-height: 270px; }
+    }
+
+    @media (max-width: 520px) {
+      .two-col { grid-template-columns: 1fr; }
+      .rod-head, .fish-head, .inventory-row { align-items: flex-start; }
+      .shake-target { width: 58px; height: 58px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header>
+      <div class="title-wrap">
+        <h1>Untitled Fishing</h1>
+        <p class="subtitle">Master every bestiary and forge your way toward Bellona's Harpoon.</p>
+      </div>
+      <div class="top-stats">
+        <div class="pill">💵 <strong id="money">$0</strong></div>
+        <div class="pill">🎣 <strong id="equippedTop">Twig Rod</strong></div>
+        <div class="pill"><span id="periodIcon">☀️</span> <strong id="periodLabel">Day</strong> <span id="periodTimer">10:00</span></div>
+      </div>
+    </header>
+
+    <section class="layout">
+      <div class="stack">
+        <section id="locationHero" class="panel location-hero">
+          <div class="hero-content">
+            <h2 id="locationName">The Gravitas Waterfall</h2>
+            <p id="locationDesc">A roaring basin where ordinary river fish drift beside things pulled in by impossible gravity.</p>
+            <button id="fishButton" class="fish-btn">Cast with Twig Rod</button>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h3>Fishing Status</h3>
+          <div class="two-col">
+            <div>
+              <div class="small">Active rod stats</div>
+              <div id="activeStats"></div>
+            </div>
+            <div>
+              <div class="small">Area completion</div>
+              <div class="progress-shell"><div id="areaProgress" class="progress-bar"></div></div>
+              <div id="areaCompletionText" class="completion"></div>
+            </div>
+          </div>
+          <div class="footer-actions">
+            <button id="switchLocationBtn">Travel to Aurora Pond</button>
+            <button id="sellAllBtn">Sell All Fish</button>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h3>Recent Activity</h3>
+          <div id="log" class="log"></div>
+        </section>
+      </div>
+
+      <section class="panel">
+        <div class="tabs">
+          <button class="tab active" data-tab="rods">Rods</button>
+          <button class="tab" data-tab="bestiary">Bestiary</button>
+          <button class="tab" data-tab="inventory">Inventory</button>
+          <button class="tab" data-tab="codes">Codes</button>
+          <button class="tab" data-tab="help">How to Play</button>
+        </div>
+
+        <div id="rods" class="tab-view active"></div>
+        <div id="bestiary" class="tab-view"></div>
+        <div id="inventory" class="tab-view"></div>
+        <div id="codes" class="tab-view">
+          <h3>Redeem Codes</h3>
+          <p class="small">Codes can be redeemed once per save file.</p>
+          <div class="footer-actions">
+            <input id="codeInput" type="text" placeholder="Enter a code" autocomplete="off" />
+            <button id="redeemCodeBtn">Redeem</button>
+          </div>
+          <p id="codeMessage" class="small"></p>
+          <div class="rod-card">
+            <strong>Active code effects</strong>
+            <div id="codeEffects" class="small">None</div>
+          </div>
+        </div>
+        <div id="help" class="tab-view">
+          <h3>How to Play</h3>
+          <p>Cast your line, wait for the lure, then click the shaking circles before they vanish. Each successful click adds 5% catch progress.</p>
+          <p>Failing the minigame still gives a catch chance equal to your current Steadiness percentage. For Unknown and Extinct fish, effective Steadiness is reduced by 40%. Luck shifts your fish roll toward rarer catches. Haste shortens lure time.</p>
+          <p>Every successful catch can naturally receive one mutation. Mutations change its selling value, and some only appear at night.</p>
+          <p>Day and night each last ten real minutes. Certain Aurora Pond fish and rod bonuses only work during one period.</p>
+          <p>Unknown and Extinct fish are optional and do not count toward bestiary completion.</p>
+          <div class="footer-actions">
+            <button id="resetBtn">Reset Save Data</button>
+          </div>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <div id="minigameModal" class="modal">
+    <div id="minigameBox" class="minigame-box">
+      <div class="mini-hud">
+        <strong id="miniFish">Something is biting...</strong>
+        <div class="progress-shell"><div id="catchProgress" class="progress-bar"></div></div>
+        <span id="miniInfo">Hits: 0/20</span>
+      </div>
+    </div>
+  </div>
+
+  <div id="resultModal" class="modal">
+    <div class="result-card">
+      <h2 id="resultTitle">Catch Result</h2>
+      <p id="resultText"></p>
+      <button id="resultClose">Continue</button>
+    </div>
+  </div>
+
+  <script>
+    const PERIOD_MS = 10 * 60 * 1000;
+    const SAVE_KEY = "veilwaterFishingSave_v1";
+
+    const rarityOrder = ["Common", "Uncommon", "Rare", "Mythical", "Legendary", "Unknown", "Extinct"];
+    const rarityWeights = {
+      Common: 58,
+      Uncommon: 25,
+      Rare: 10,
+      Mythical: 4.5,
+      Legendary: 1.8,
+      Unknown: 0.55,
+      Extinct: 0.15
+    };
+    const shakeCounts = {
+      Common: 50,
+      Uncommon: 45,
+      Rare: 40,
+      Mythical: 35,
+      Legendary: 30,
+      Unknown: 25,
+      Extinct: 20
+    };
+
+
+    const naturalMutations = [
+      { name:"Grassy", multiplier:1.1, chance:0.0099 },
+      { name:"Scorching", multiplier:1.33, chance:0.009 },
+      { name:"Tanned", multiplier:1.37, chance:0.0082 },
+      { name:"Decayed", multiplier:0.33, chance:0.008 },
+      { name:"Greed", multiplier:0.3, chance:0.008 },
+      { name:"Sloth", multiplier:0.22, chance:0.008 },
+      { name:"Jackpotted", multiplier:1.777, chance:0.00777 },
+      { name:"Spicy", multiplier:1.85, chance:0.0075 },
+      { name:"Ghastly", multiplier:1.99, chance:0.0072 },
+      { name:"Lunar", multiplier:2.22, chance:0.0069, nightOnly:true },
+      { name:"Ruinous", multiplier:2.4, chance:0.0068 },
+      { name:"Silver", multiplier:2, chance:0.003 },
+      { name:"Gold", multiplier:3, chance:0.001 },
+      { name:"Prismatic", multiplier:5, chance:0.0003 },
+      { name:"Hacked", multiplier:-0.1, chance:0.000001 }
+    ];
+
+    const fishDescriptions = {
+      "Trout":"A dependable waterfall fish with quick silver scales.",
+      "Mullet":"A sturdy schooling fish that favors calmer edges of the basin.",
+      "Largemouth Bass":"An aggressive freshwater hunter with an oversized mouth.",
+      "Pike":"A long, sharp-toothed ambusher that strikes from submerged cover.",
+      "Grouper":"A heavy-bodied fish that hides among deep waterfall rocks.",
+      "Rubbish":"Waterlogged junk pulled from the current. Somehow, it still counts.",
+      "Sockeye Salmon":"A determined red-sided salmon fighting against the waterfall flow.",
+      "Clownfish":"A brightly striped visitor that looks very far from home.",
+      "Angelfish":"A graceful fish whose fins drift like delicate banners.",
+      "Anglerfish":"A gloomy deepwater oddity carrying its own glowing lure.",
+      "Seahorse":"A tiny upright swimmer that curls its tail around river plants.",
+      "Starfish":"A five-armed wanderer carried inland by Gravitas distortions.",
+      "Tanglekelp":"A living knot of kelp that fights the line like a fish.",
+      "Goldfish":"A gleaming ornamental fish made unusually valuable by the falls.",
+      "Flounder":"A flat bottom-dweller with both eyes watching from one side.",
+      "Reefrunner":"A swift mythical fish that leaves a streak of reef-colored light.",
+      "Sawfish":"A powerful fish with a serrated snout built like a living blade.",
+      "Catfish":"A massive whiskered legend that lurks beneath muddy ledges.",
+      "Swordfish":"A legendary high-speed predator armed with a spear-like bill.",
+      "Orbiting Orchidfish":"An impossible floral fish that circles the hook instead of swimming.",
+      "Weird Algae":"A suspicious clump that pulses faintly beneath aurora light.",
+      "Shark Egg":"A tough egg case with something restless moving inside.",
+      "Red Snapper":"A bright red pond fish with a famously sharp bite.",
+      "Lionfish":"A striped fish whose ornate spines warn careless anglers away.",
+      "Squid":"A clever cephalopod that clouds the water when startled.",
+      "Minnow":"A tiny, common-looking fish made uncommon by the pond's magic.",
+      "Fresh Fertilizer":"A fragrant item catch that is unfortunately very fresh.",
+      "Buried Treasure":"A mud-caked chest dragged from beneath the pond floor.",
+      "Old Fishing Rod":"A retired rod that has apparently become somebody else's catch.",
+      "Sunseeker":"A radiant fish that rises only while daylight touches the pond.",
+      "Moonhider":"A pale fish that appears only after the sun has vanished.",
+      "Blobfish":"A soft-bodied mythical fish that looks deeply unimpressed.",
+      "Rainbow Snapper":"A daylight fish whose scales split sunlight into shifting colors.",
+      "Skull":"A grim item catch polished smooth by years under the water.",
+      "Phantom Fang":"A legendary spectral tooth that bites back through the line.",
+      "Mosslurker":"An unknown moss-covered creature nearly indistinguishable from the bank.",
+      "Coconut":"A baffling tropical item drifting in a decidedly non-tropical pond.",
+      "Pufferfish":"A secretive round fish that inflates the moment it sees a hook.",
+      "Dawn's Devil":"An extinct-looking horror that emerges only beneath dawn-colored light.",
+      "Lunar Lurker":"An ancient nocturnal predator that can replace a Mosslurker encounter."
+    };
+
+    const rods = [
+      { id:"twig", name:"Twig Rod", haste:10, luck:0, steady:5, price:0, unlock:"Free starter rod" },
+      { id:"splitbranch", name:"Splitbranch Rod", haste:44, luck:-5, steady:44, alt:{haste:-5,luck:88,steady:0}, price:100, unlock:"Purchase for $100", passive:"Randomly changes between two stat sets after every catch." },
+      { id:"plastic", name:"Plastic Rod", haste:50, luck:40, steady:30, price:175, unlock:"Purchase for $175" },
+      { id:"fiber", name:"Fiber Rod", haste:37.5, luck:42, steady:80, price:555, unlock:"Purchase for $555" },
+      { id:"carbon", name:"Carbon Rod", haste:43, luck:40.5, steady:88, price:750, unlock:"Purchase for $750" },
+      { id:"bone", name:"Bone Rod", haste:100, luck:0, steady:5, price:600, unlock:"Purchase for $600" },
+      { id:"electromagnetic", name:"Electromagnetic Rod", haste:90, luck:10, steady:85, price:1000, unlock:"Purchase for $1,000", passive:"Only hooks item-type catches." },
+      { id:"snowflake", name:"Snowflake Rod", haste:100, luck:111, steady:11.11, price:888, unlock:"Purchase for $888", passive:"All stats decay by 1% every 3 catches. At 0%, the rod dematerializes." },
+      { id:"gravidoomer", name:"Gravidoomer", haste:94.1, luck:183, steady:0, price:5000, requirement:"gravitas", unlock:"Complete Gravitas Waterfall and pay $5,000", passive:"40% chance for each shake to stay still 2 extra seconds. 20% chance for Gravitational mutation (1.8×)." },
+      { id:"aurora", name:"Rod of the Aurora Veil", haste:85, luck:100, steady:33, price:10000, requirement:"aurora", unlock:"Complete Aurora Pond and pay $10,000", passive:"At night: double Luck, triple Steadiness, and 5% Aurora mutation (2.33×). During day: Steadiness is halved." },
+      { id:"premium", name:"Premium Rod", haste:100, luck:100, steady:100, price:2000, unlock:"Purchase for $2,000" },
+      { id:"luckiest", name:"Luckiest Rod", haste:-5, luck:277, steady:5, price:2002, unlock:"Purchase for $2,002" },
+      { id:"fortuneous", name:"Fortuneous Rod", haste:37, luck:177, steady:77, price:2777, unlock:"Purchase for $2,777", passive:"27% chance to duplicate a caught fish." },
+      { id:"bellona", name:"Bellona's Harpoon", haste:145, luck:200, steady:20, price:30000, requirement:"all", unlock:"Complete all required bestiaries and pay $30,000", passive:"A perfect minigame duplicates the fish with War's Ruin mutation (2.2×)." }
+    ];
+
+    const locations = {
+      gravitas: {
+        name:"The Gravitas Waterfall",
+        desc:"A roaring basin where ordinary river fish drift beside things pulled in by impossible gravity.",
+        fish:[
+          ["Trout","Common",14],["Mullet","Common",12],["Largemouth Bass","Common",20],["Pike","Common",24],
+          ["Grouper","Common",22],["Rubbish","Common",3,true],["Sockeye Salmon","Common",26],
+          ["Clownfish","Uncommon",32],["Angelfish","Uncommon",38],["Anglerfish","Uncommon",45],
+          ["Seahorse","Uncommon",50],["Starfish","Uncommon",42],["Tanglekelp","Rare",85],
+          ["Goldfish","Rare",120],["Flounder","Rare",95],["Reefrunner","Mythical",260],
+          ["Sawfish","Mythical",320],["Catfish","Mythical",240],["Swordfish","Legendary",750],
+          ["Orbiting Orchidfish","Unknown",1800,false,"optional"]
+        ]
+      },
+      aurora: {
+        name:"Aurora Pond",
+        desc:"A luminous pond where daylight and moonlight reveal entirely different creatures.",
+        fish:[
+          ["Weird Algae","Common",5,true],["Shark Egg","Common",35,true],["Red Snapper","Common",22],
+          ["Lionfish","Common",28],["Squid","Uncommon",34],["Minnow","Uncommon",12],
+          ["Fresh Fertilizer","Uncommon",18,true],["Buried Treasure","Rare",150,true],
+          ["Old Fishing Rod","Rare",110,true],["Sunseeker","Rare",125,false,"day"],
+          ["Moonhider","Rare",125,false,"night"],["Blobfish","Mythical",250],
+          ["Rainbow Snapper","Mythical",340,false,"day"],["Skull","Mythical",190,true],
+          ["Phantom Fang","Legendary",850],["Mosslurker","Unknown",1350,false,"optional"],
+          ["Coconut","Unknown",500,true,"optional"],["Pufferfish","Unknown",900,false,"optional"],
+          ["Dawn's Devil","Extinct",3500,false,"dayOptional"],["Lunar Lurker","Extinct",3200,false,"lunar"]
+        ]
+      }
+    };
+
+    let state = loadState();
+    let activeMini = null;
+    let clockTimer = null;
+
+    function freshState() {
+      return {
+        money:0,
+        location:"gravitas",
+        equipped:"twig",
+        owned:["twig"],
+        inventory:{},
+        caught:{},
+        mutations:{},
+        cycleStart:Date.now(),
+        splitMode:0,
+        snowflakeCatches:0,
+        snowflakeIntegrity:100,
+        rodSort:"nameAZ",
+        redeemedCodes:[],
+        luckBoostUntil:0,
+        logs:["Welcome to The Gravitas Waterfall. Your Twig Rod is ready."]
+      };
+    }
+
+    function loadState() {
+      try {
+        const parsed = JSON.parse(localStorage.getItem(SAVE_KEY));
+        return parsed ? Object.assign(freshState(), parsed) : freshState();
+      } catch {
+        return freshState();
+      }
+    }
+
+    function saveState() {
+      localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+    }
+
+    function getPeriod() {
+      const phase = Math.floor((Date.now() - state.cycleStart) / PERIOD_MS);
+      return phase % 2 === 0 ? "day" : "night";
+    }
+
+    function getTimeRemaining() {
+      const elapsed = (Date.now() - state.cycleStart) % PERIOD_MS;
+      return PERIOD_MS - elapsed;
+    }
+
+    function currentRod() {
+      return rods.find(r => r.id === state.equipped) || rods[0];
+    }
+
+    function effectiveStats(rod=currentRod()) {
+      let stats = { haste:rod.haste, luck:rod.luck, steady:rod.steady };
+
+      if (rod.id === "splitbranch" && state.splitMode === 1) {
+        stats = {...rod.alt};
+      }
+
+      if (rod.id === "snowflake") {
+        const factor = Math.max(0, state.snowflakeIntegrity) / 100;
+        stats.haste *= factor;
+        stats.luck *= factor;
+        stats.steady *= factor;
+      }
+
+      if (rod.id === "aurora") {
+        if (getPeriod() === "night") {
+          stats.luck *= 2;
+          stats.steady *= 3;
+        } else {
+          stats.steady *= .5;
+        }
+      }
+
+      if (Date.now() < (state.luckBoostUntil || 0)) {
+        stats.luck *= 2;
+      }
+
+      return stats;
+    }
+
+    function requiredFish(locationId) {
+      return locations[locationId].fish.filter(f => !["optional","dayOptional","lunar"].includes(f[4]));
+    }
+
+    function locationCompletion(locationId) {
+      const req = requiredFish(locationId);
+      const caught = req.filter(f => (state.caught[f[0]] || 0) > 0).length;
+      return { caught, total:req.length, complete:caught === req.length, pct:req.length ? caught / req.length * 100 : 0 };
+    }
+
+    function requirementMet(rod) {
+      if (!rod.requirement) return true;
+      if (rod.requirement === "gravitas") return locationCompletion("gravitas").complete;
+      if (rod.requirement === "aurora") return locationCompletion("aurora").complete;
+      if (rod.requirement === "all") return locationCompletion("gravitas").complete && locationCompletion("aurora").complete;
+      return true;
+    }
+
+    function isAuroraUnlocked() {
+      return locationCompletion("gravitas").complete;
+    }
+
+    function formatMoney(value) {
+      return "$" + Math.round(value).toLocaleString();
+    }
+
+    function addLog(text, cls="") {
+      state.logs.unshift({text, cls, t:Date.now()});
+      state.logs = state.logs.slice(0, 30);
+      saveState();
+      renderLog();
+    }
+
+    function renderLog() {
+      const el = document.getElementById("log");
+      el.innerHTML = state.logs.map(entry => {
+        if (typeof entry === "string") return `<div class="log-entry">${entry}</div>`;
+        return `<div class="log-entry ${entry.cls || ""}">${entry.text}</div>`;
+      }).join("");
+    }
+
+    function render() {
+      const period = getPeriod();
+      document.body.classList.toggle("day", period === "day");
+      document.getElementById("money").textContent = formatMoney(state.money);
+      document.getElementById("equippedTop").textContent = currentRod().name;
+      document.getElementById("periodIcon").textContent = period === "day" ? "☀️" : "🌙";
+      document.getElementById("periodLabel").textContent = period === "day" ? "Day" : "Night";
+
+      const loc = locations[state.location];
+      const hero = document.getElementById("locationHero");
+      hero.classList.toggle("aurora", state.location === "aurora");
+      document.getElementById("locationName").textContent = loc.name;
+      document.getElementById("locationDesc").textContent = loc.desc;
+      document.getElementById("fishButton").textContent = `Cast with ${currentRod().name}`;
+
+      const stats = effectiveStats();
+      document.getElementById("activeStats").innerHTML =
+        `<strong>Haste:</strong> ${stats.haste.toFixed(2)} &nbsp; <strong>Luck:</strong> ${stats.luck.toFixed(2)} &nbsp; <strong>Steadiness:</strong> ${stats.steady.toFixed(2)}`;
+
+      const comp = locationCompletion(state.location);
+      document.getElementById("areaProgress").style.width = `${comp.pct}%`;
+      document.getElementById("areaCompletionText").textContent = `${comp.caught}/${comp.total} required species discovered (${comp.pct.toFixed(0)}%)`;
+
+      const switchBtn = document.getElementById("switchLocationBtn");
+      if (state.location === "gravitas") {
+        switchBtn.textContent = isAuroraUnlocked() ? "Travel to Aurora Pond" : "Aurora Pond Locked";
+        switchBtn.disabled = !isAuroraUnlocked();
+      } else {
+        switchBtn.textContent = "Travel to Gravitas Waterfall";
+        switchBtn.disabled = false;
+      }
+
+      renderRods();
+      renderBestiary();
+      renderInventory();
+      renderCodeEffects();
+      renderLog();
+      updateClock();
+      saveState();
+    }
+
+    function renderRods() {
+      const el = document.getElementById("rods");
+      const sorted = [...rods].sort((a,b) => {
+        if (state.rodSort === "nameZA") return b.name.localeCompare(a.name);
+        if (state.rodSort === "priceUp") return a.price - b.price || a.name.localeCompare(b.name);
+        if (state.rodSort === "priceDown") return b.price - a.price || a.name.localeCompare(b.name);
+        return a.name.localeCompare(b.name);
+      });
+
+      el.innerHTML = `<div class="rod-head">
+          <h3>Rod Collection</h3>
+          <select id="rodSortSelect" aria-label="Sort rods">
+            <option value="nameAZ" ${state.rodSort === "nameAZ" ? "selected" : ""}>Name: A–Z</option>
+            <option value="nameZA" ${state.rodSort === "nameZA" ? "selected" : ""}>Name: Z–A</option>
+            <option value="priceUp" ${state.rodSort === "priceUp" ? "selected" : ""}>Price: Low–High</option>
+            <option value="priceDown" ${state.rodSort === "priceDown" ? "selected" : ""}>Price: High–Low</option>
+          </select>
+        </div>` + sorted.map(rod => {
+        const owned = state.owned.includes(rod.id);
+        const met = requirementMet(rod);
+        const equipped = state.equipped === rod.id;
+        let stats = `${rod.haste} Haste · ${rod.luck} Luck · ${rod.steady} Steadiness`;
+        if (rod.id === "splitbranch") stats += ` / Alternate: -5 Haste · 88 Luck · 0 Steadiness`;
+        if (rod.id === "snowflake" && owned) stats += ` · Integrity ${state.snowflakeIntegrity.toFixed(0)}%`;
+
+        let button = "";
+        if (owned) {
+          button = `<button ${equipped ? "disabled" : ""} onclick="equipRod('${rod.id}')">${equipped ? "Equipped" : "Equip"}</button>`;
+        } else {
+          button = `<button ${(!met || state.money < rod.price) ? "disabled" : ""} onclick="buyRod('${rod.id}')">Buy ${formatMoney(rod.price)}</button>`;
+        }
+
+        return `<div class="rod-card">
+          <div class="rod-head">
+            <div>
+              <strong>${rod.name}</strong>
+              <div class="rod-stats">${stats}</div>
+            </div>
+            ${button}
+          </div>
+          <div class="small">${rod.passive || "No passive."}</div>
+          <div class="small">${owned ? "Owned" : rod.unlock}${!met ? " — requirement not met" : ""}</div>
+        </div>`;
+      }).join("");
+
+      document.getElementById("rodSortSelect").addEventListener("change", event => {
+        state.rodSort = event.target.value;
+        saveState();
+        renderRods();
+      });
+    }
+
+    function renderBestiary() {
+      const el = document.getElementById("bestiary");
+      const loc = locations[state.location];
+      const comp = locationCompletion(state.location);
+      el.innerHTML = `<h3>${loc.name} Bestiary</h3>
+        <p class="small">${comp.caught}/${comp.total} required species. Unknown and Extinct entries are optional.</p>` +
+        loc.fish.map(f => {
+          const [name, rarity, price, item, condition] = f;
+          const count = state.caught[name] || 0;
+          const hidden = count === 0 && ["Unknown","Extinct"].includes(rarity);
+          let conditionText = "";
+          if (condition === "day") conditionText = " · Day only";
+          if (condition === "night") conditionText = " · Night only";
+          if (condition === "dayOptional") conditionText = " · Day only, optional";
+          if (condition === "lunar") conditionText = " · Replaces Mosslurker 10% of the time";
+          if (condition === "optional") conditionText = " · Optional";
+          return `<div class="fish-card">
+            <div class="fish-head">
+              <strong>${hidden ? "???" : name}</strong>
+              <span class="badge ${rarity}">${rarity}</span>
+            </div>
+            <div class="small">${hidden ? "Its identity remains hidden." : (fishDescriptions[name] || "No description recorded.")}</div>
+            <div class="small">${count ? `Caught ${count} · Base value ${formatMoney(price)}` : "Undiscovered"}${item ? " · Item catch" : ""}${conditionText}</div>
+          </div>`;
+        }).join("");
+    }
+
+    function renderInventory() {
+      const el = document.getElementById("inventory");
+      const entries = Object.entries(state.inventory).filter(([,data]) => data.count > 0);
+      if (!entries.length) {
+        el.innerHTML = `<h3>Inventory</h3><p class="small">No catches stored.</p>`;
+        return;
+      }
+      el.innerHTML = `<h3>Inventory</h3>` + entries.map(([key,data]) => {
+        const total = data.count * data.unitValue;
+        return `<div class="inventory-row">
+          <div>
+            <strong>${data.displayName}</strong>
+            <div class="small">${data.count} × ${formatMoney(data.unitValue)}${data.mutation ? ` · ${data.mutation}` : ""}</div>
+          </div>
+          <button onclick="sellInventoryKey('${encodeURIComponent(key)}')">Sell ${formatMoney(total)}</button>
+        </div>`;
+      }).join("");
+    }
+
+    function buyRod(id) {
+      const rod = rods.find(r => r.id === id);
+      if (!rod || state.owned.includes(id) || !requirementMet(rod) || state.money < rod.price) return;
+      state.money -= rod.price;
+      state.owned.push(id);
+      if (id === "snowflake") {
+        state.snowflakeIntegrity = 100;
+        state.snowflakeCatches = 0;
+      }
+      state.equipped = id;
+      addLog(`Purchased and equipped ${rod.name}.`, "success");
+      render();
+    }
+
+    function equipRod(id) {
+      if (!state.owned.includes(id)) return;
+      state.equipped = id;
+      addLog(`Equipped ${currentRod().name}.`);
+      render();
+    }
+
+    function chooseFish() {
+      const rod = currentRod();
+      const stats = effectiveStats(rod);
+      const period = getPeriod();
+      let pool = locations[state.location].fish.filter(f => {
+        const condition = f[4];
+        if (condition === "day" || condition === "dayOptional") return period === "day";
+        if (condition === "night") return period === "night";
+        if (condition === "lunar") return false;
+        return true;
+      });
+
+      if (rod.id === "electromagnetic") {
+        pool = pool.filter(f => f[3] === true);
+      }
+
+      // Lunar Lurker directly replaces the normal weighted roll 10% of the time at night.
+      const lunarEligible = state.location === "aurora" && period === "night" && rod.id !== "electromagnetic";
+      if (lunarEligible && Math.random() < .10) {
+        const lunar = locations.aurora.fish.find(f => f[0] === "Lunar Lurker");
+        return { fish:lunar, chance:10 };
+      }
+
+      const luckFactor = Math.max(-100, stats.luck);
+      const weighted = pool.map(f => {
+        const rank = rarityOrder.indexOf(f[1]);
+        const base = rarityWeights[f[1]];
+        const boost = Math.pow(1 + Math.max(0, luckFactor) / 120, rank * .72);
+        const penalty = luckFactor < 0 ? Math.pow(.92, rank * Math.abs(luckFactor) / 5) : 1;
+        return {f, weight:base * boost * penalty};
+      });
+
+      const total = weighted.reduce((s,x) => s + x.weight, 0);
+      let roll = Math.random() * total;
+      let selected = weighted[0];
+      for (const x of weighted) {
+        roll -= x.weight;
+        if (roll <= 0) {
+          selected = x;
+          break;
+        }
+      }
+
+      const conditionalFactor = lunarEligible ? .90 : 1;
+      return {
+        fish:selected.f,
+        chance:(selected.weight / total) * 100 * conditionalFactor
+      };
+    }
+
+    function castLine() {
+      if (activeMini) return;
+      const rod = currentRod();
+      const stats = effectiveStats(rod);
+      const waitSeconds = Math.max(0, (100 - stats.haste) * .075);
+      const fishButton = document.getElementById("fishButton");
+      fishButton.disabled = true;
+      fishButton.textContent = waitSeconds <= 0 ? "Instant bite!" : `Waiting... ${waitSeconds.toFixed(2)}s`;
+      setTimeout(() => {
+        fishButton.disabled = false;
+        fishButton.textContent = `Cast with ${currentRod().name}`;
+        const encounter = chooseFish();
+        startMinigame(encounter.fish, encounter.chance);
+      }, waitSeconds * 1000);
+    }
+
+    function startMinigame(fish, encounterChance) {
+      const rod = currentRod();
+      activeMini = {
+        fish,
+        encounterChance,
+        total:shakeCounts[fish[1]],
+        spawned:0,
+        hits:0,
+        misses:0,
+        ended:false,
+        timers:[]
+      };
+
+      document.getElementById("miniFish").textContent = `${fish[1]} bite — ${fish[0]}`;
+      document.getElementById("catchProgress").style.width = "0%";
+      document.getElementById("miniInfo").textContent = `Hits: 0/20 · Opportunities: ${activeMini.total}`;
+      document.getElementById("minigameModal").classList.add("active");
+
+      const interval = Math.max(260, 650 - Math.min(250, effectiveStats(rod).haste));
+      spawnShake();
+      const timer = setInterval(() => {
+        if (!activeMini || activeMini.ended) return clearInterval(timer);
+        if (activeMini.spawned >= activeMini.total || activeMini.hits >= 20) {
+          clearInterval(timer);
+          const finishTimer = setTimeout(finishMinigame, 2300);
+          activeMini.timers.push(finishTimer);
+          return;
+        }
+        spawnShake();
+      }, interval);
+      activeMini.timers.push(timer);
+    }
+
+    function spawnShake() {
+      if (!activeMini || activeMini.ended || activeMini.spawned >= activeMini.total) return;
+      activeMini.spawned++;
+      const box = document.getElementById("minigameBox");
+      const btn = document.createElement("button");
+      btn.className = "shake-target";
+      btn.setAttribute("aria-label","Catch target");
+      const maxX = Math.max(20, box.clientWidth - 82);
+      const maxY = Math.max(90, box.clientHeight - 82);
+      btn.style.left = `${20 + Math.random() * (maxX - 20)}px`;
+      btn.style.top = `${82 + Math.random() * (maxY - 82)}px`;
+
+      let life = 1280;
+      if (currentRod().id === "gravidoomer" && Math.random() < .40) {
+        btn.classList.add("still");
+        life += 2000;
+      }
+
+      let clicked = false;
+      btn.onclick = () => {
+        if (clicked || !activeMini || activeMini.ended) return;
+        clicked = true;
+        activeMini.hits++;
+        btn.remove();
+        const pct = Math.min(100, activeMini.hits * 5);
+        document.getElementById("catchProgress").style.width = `${pct}%`;
+        document.getElementById("miniInfo").textContent = `Hits: ${activeMini.hits}/20 · Opportunities: ${activeMini.total - activeMini.spawned}`;
+        if (activeMini.hits >= 20) finishMinigame();
+      };
+
+      box.appendChild(btn);
+      const timeout = setTimeout(() => {
+        if (!clicked && activeMini && !activeMini.ended) activeMini.misses++;
+        btn.remove();
+      }, life);
+      activeMini.timers.push(timeout);
+    }
+
+    function finishMinigame() {
+      if (!activeMini || activeMini.ended) return;
+      activeMini.ended = true;
+      activeMini.timers.forEach(t => clearTimeout(t));
+      document.querySelectorAll(".shake-target").forEach(x => x.remove());
+
+      const mini = activeMini;
+      const rod = currentRod();
+      const stats = effectiveStats(rod);
+      const completed = mini.hits >= 20;
+      const aboveLegendary = rarityOrder.indexOf(mini.fish[1]) > rarityOrder.indexOf("Legendary");
+      const effectiveSteadiness = stats.steady * (aboveLegendary ? 0.6 : 1);
+      const fallback = !completed && Math.random() < Math.max(0, Math.min(1, effectiveSteadiness / 100));
+      const caught = completed || fallback;
+      const perfect = completed && mini.misses === 0;
+
+      document.getElementById("minigameModal").classList.remove("active");
+      activeMini = null;
+
+      if (caught) {
+        processCatch(mini.fish, {completed, fallback, perfect, encounterChance:mini.encounterChance});
+      } else {
+        showResult("The fish escaped", `You reached ${mini.hits * 5}% progress. Your effective ${effectiveSteadiness.toFixed(2)}% Steadiness save did not succeed. This encounter had a ${mini.encounterChance.toFixed(5)}% catch-roll chance.`);
+        addLog(`${mini.fish[0]} escaped at ${mini.hits * 5}% progress.`, "danger");
+        afterCatchAttempt();
+      }
+    }
+
+    function rollNaturalMutation() {
+      const period = getPeriod();
+      let roll = Math.random();
+      let cumulative = 0;
+      for (const mutation of naturalMutations) {
+        if (mutation.nightOnly && period !== "night") continue;
+        cumulative += mutation.chance;
+        if (roll < cumulative) return mutation;
+      }
+      return null;
+    }
+
+    function processCatch(fish, result) {
+      const [name, rarity, basePrice] = fish;
+      const rod = currentRod();
+      let mutation = null;
+      let multiplier = 1;
+      let extraCopies = 0;
+      let extraMutation = null;
+      let extraMultiplier = 1;
+
+      const natural = rollNaturalMutation();
+      if (natural) {
+        mutation = `${natural.name} Mutation`;
+        multiplier = natural.multiplier;
+      }
+
+      if (rod.id === "gravidoomer" && Math.random() < .20) {
+        mutation = "Gravitational Mutation";
+        multiplier = 1.8;
+      }
+
+      if (rod.id === "aurora" && getPeriod() === "night" && Math.random() < .05) {
+        mutation = "Aurora Mutation";
+        multiplier = 2.33;
+      }
+
+      if (rod.id === "fortuneous" && Math.random() < .27) {
+        extraCopies++;
+      }
+
+      if (rod.id === "bellona" && result.perfect) {
+        extraCopies++;
+        extraMutation = "War's Ruin Mutation";
+        extraMultiplier = 2.2;
+      }
+
+      addInventory(name, basePrice, mutation, multiplier, 1);
+      if (extraCopies) {
+        if (extraMutation) {
+          addInventory(name, basePrice, extraMutation, extraMultiplier, 1);
+          if (extraCopies > 1) addInventory(name, basePrice, mutation, multiplier, extraCopies - 1);
+        } else {
+          addInventory(name, basePrice, mutation, multiplier, extraCopies);
+        }
+      }
+
+      state.caught[name] = (state.caught[name] || 0) + 1 + extraCopies;
+
+      let details = `${rarity} ${name} caught`;
+      details += ` · Encounter chance: ${result.encounterChance.toFixed(5)}%`;
+      if (result.fallback) details += " through Steadiness";
+      if (mutation) details += ` with ${mutation} (${multiplier}× value)`;
+      if (extraCopies) details += ` · ${extraCopies} bonus copy`;
+      showResult("Catch secured!", details + ".");
+      addLog(details + ".", "success");
+      afterCatchAttempt();
+    }
+
+    function addInventory(name, basePrice, mutation, multiplier, count) {
+      const key = `${name}__${mutation || "Normal"}`;
+      if (!state.inventory[key]) {
+        state.inventory[key] = {
+          displayName:name,
+          mutation:mutation,
+          unitValue:Math.round(basePrice * multiplier),
+          count:0
+        };
+      }
+      state.inventory[key].count += count;
+    }
+
+    function afterCatchAttempt() {
+      const rod = currentRod();
+
+      if (rod.id === "splitbranch") {
+        state.splitMode = Math.random() < .5 ? 0 : 1;
+      }
+
+      if (rod.id === "snowflake") {
+        state.snowflakeCatches++;
+        if (state.snowflakeCatches % 3 === 0) {
+          state.snowflakeIntegrity = Math.max(0, state.snowflakeIntegrity - 1);
+          addLog(`Snowflake Rod integrity fell to ${state.snowflakeIntegrity}%.`, "warning");
+        }
+        if (state.snowflakeIntegrity <= 0) {
+          state.owned = state.owned.filter(id => id !== "snowflake");
+          state.equipped = "twig";
+          state.snowflakeCatches = 0;
+          state.snowflakeIntegrity = 100;
+          addLog("The Snowflake Rod dematerialized. Twig Rod equipped.", "danger");
+        }
+      }
+
+      render();
+    }
+
+    function showResult(title, text) {
+      document.getElementById("resultTitle").textContent = title;
+      document.getElementById("resultText").textContent = text;
+      document.getElementById("resultModal").classList.add("active");
+    }
+
+    function sellInventoryKey(encoded) {
+      const key = decodeURIComponent(encoded);
+      const data = state.inventory[key];
+      if (!data || data.count <= 0) return;
+      const value = data.count * data.unitValue;
+      state.money += value;
+      delete state.inventory[key];
+      addLog(`Sold catch stack for ${formatMoney(value)}.`, "success");
+      render();
+    }
+
+    function sellAll() {
+      let total = 0;
+      for (const data of Object.values(state.inventory)) total += data.count * data.unitValue;
+      if (!total) {
+        addLog("There is nothing to sell.", "warning");
+        return;
+      }
+      state.money += total;
+      state.inventory = {};
+      addLog(`Sold all catches for ${formatMoney(total)}.`, "success");
+      render();
+    }
+
+    function switchLocation() {
+      if (state.location === "gravitas") {
+        if (!isAuroraUnlocked()) return;
+        state.location = "aurora";
+      } else {
+        state.location = "gravitas";
+      }
+      addLog(`Travelled to ${locations[state.location].name}.`);
+      render();
+    }
+
+    function redeemCode() {
+      const input = document.getElementById("codeInput");
+      const message = document.getElementById("codeMessage");
+      const code = input.value.trim().toUpperCase();
+      if (!code) {
+        message.textContent = "Enter a code first.";
+        return;
+      }
+      state.redeemedCodes = state.redeemedCodes || [];
+      if (state.redeemedCodes.includes(code)) {
+        message.textContent = "That code has already been redeemed on this save file.";
+        return;
+      }
+
+      if (code === "SECRETADMINMAX") {
+        for (const loc of Object.values(locations)) {
+          for (const fish of loc.fish) {
+            state.caught[fish[0]] = Math.max(1, state.caught[fish[0]] || 0);
+          }
+        }
+        state.money += 1000000;
+        state.redeemedCodes.push(code);
+        message.textContent = "SECRETADMINMAX redeemed: full bestiary and $1,000,000!";
+        addLog("SECRETADMINMAX completed every bestiary and granted $1,000,000.", "success");
+      } else if (code === "LMAO") {
+        state.luckBoostUntil = Math.max(Date.now(), state.luckBoostUntil || 0) + 20 * 60 * 1000;
+        state.redeemedCodes.push(code);
+        message.textContent = "LMAO redeemed: 2× Luck for 20 minutes!";
+        addLog("LMAO activated 2× Luck for 20 minutes.", "success");
+      } else {
+        message.textContent = "Invalid code.";
+        return;
+      }
+
+      input.value = "";
+      saveState();
+      render();
+    }
+
+    function renderCodeEffects() {
+      const el = document.getElementById("codeEffects");
+      if (!el) return;
+      const remaining = Math.max(0, (state.luckBoostUntil || 0) - Date.now());
+      if (remaining > 0) {
+        const min = Math.floor(remaining / 60000);
+        const sec = Math.floor((remaining % 60000) / 1000);
+        el.textContent = `2× Luck — ${min}:${String(sec).padStart(2,"0")} remaining`;
+      } else {
+        el.textContent = "None";
+      }
+    }
+
+    function updateClock() {
+      const ms = getTimeRemaining();
+      const min = Math.floor(ms / 60000);
+      const sec = Math.floor((ms % 60000) / 1000);
+      document.getElementById("periodTimer").textContent = `${min}:${String(sec).padStart(2,"0")}`;
+      const period = getPeriod();
+      document.body.classList.toggle("day", period === "day");
+      document.getElementById("periodIcon").textContent = period === "day" ? "☀️" : "🌙";
+      document.getElementById("periodLabel").textContent = period === "day" ? "Day" : "Night";
+    }
+
+    document.getElementById("fishButton").addEventListener("click", castLine);
+    document.getElementById("switchLocationBtn").addEventListener("click", switchLocation);
+    document.getElementById("sellAllBtn").addEventListener("click", sellAll);
+    document.getElementById("redeemCodeBtn").addEventListener("click", redeemCode);
+    document.getElementById("codeInput").addEventListener("keydown", event => {
+      if (event.key === "Enter") redeemCode();
+    });
+    document.getElementById("resultClose").addEventListener("click", () => document.getElementById("resultModal").classList.remove("active"));
+    document.getElementById("resetBtn").addEventListener("click", () => {
+      if (!confirm("Delete all money, rods, catches, and bestiary progress?")) return;
+      localStorage.removeItem(SAVE_KEY);
+      state = freshState();
+      render();
+    });
+
+    document.querySelectorAll(".tab").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".tab").forEach(x => x.classList.remove("active"));
+        document.querySelectorAll(".tab-view").forEach(x => x.classList.remove("active"));
+        btn.classList.add("active");
+        document.getElementById(btn.dataset.tab).classList.add("active");
+      });
+    });
+
+    window.buyRod = buyRod;
+    window.equipRod = equipRod;
+    window.sellInventoryKey = sellInventoryKey;
+
+    render();
+    clockTimer = setInterval(() => {
+      const previous = document.getElementById("periodLabel").textContent.toLowerCase();
+      updateClock();
+      renderCodeEffects();
+      if (previous !== getPeriod()) render();
+    }, 1000);
+  </script>
+</body>
+</html>
